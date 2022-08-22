@@ -14,16 +14,21 @@ if [ $# == 0 ]; then
     exit 1
 fi
 
+isnew=0
 analysis=$1
-latinobranch=base
+usebase=0
 onlyLatinoAnalysis=0
 
 if [ $analysis == 'master' ] || [ $analysis == 'base' ]; then
     onlyLatinoAnalysis=1
-elif [[ $analysis == 'new'* ]]; then
-    analysis=base
-elif [ $# == 1 ]; then
-    latinobranch=$analysis
+fi
+
+if [[ $analysis == 'new'* ]]; then
+    analysis=${analysis#new}
+fi
+
+if [ $# == 2 ]; then
+    usebase=1
 fi
 
 source $CMSSW_BASE/src/LatinosSetup/Functions.sh
@@ -42,12 +47,35 @@ if [[ "$CMSSW_VERSION" == CMSSW_10_*_* ]]; then
     if [ $analysis == 'master' ]; then
         git remote add upstream https://github.com/latinos/LatinoAnalysis
         sed "s|https://github.com/latinos/setup|https://github.com/latinos/LatinoAnalysis|g" ../LatinosSetup/sync2upstream.sh > sync2upstream.sh    
-    else
-        echo git checkout $latinobranch
+    elif [ $usebase == 1 ]; then
+        git checkout base
+    elif [ $isnew == 1 ]; then
+        git checkout base
+        git checkout -b $analysis base
+        sed "s|base|${analysis}|g;s|master|base|g" sync2master.sh > sync2base.sh ; rm sync2master.sh
+    else:
+        echo git checkout $analysis
     fi     
     echo cd -
 
-    if [ $onlyLatinoAnalysis == 1 ]; then
+    if [ $analysis == 'master' ]; then
+        exit 1
+    fi
+
+    echo " - Plots Configurations"
+
+    git clone https://github.com/scodella/PlotsConfigurations PlotsConfigurations
+    cd PlotsConfigurations
+    if [ $isnew == 1 ]; then
+        git checkout base
+        git checkout -b $analysis base
+        sed "s|base|${analysis}|g;s|master|base|g" sync2master.sh > sync2base.sh ; rm sync2master.sh
+    else:
+        echo git checkout $analysis
+    fi
+    cd -
+
+    if [ $analysis == 'base' ]; then
         exit 1
     fi
 
@@ -70,13 +98,6 @@ if [[ "$CMSSW_VERSION" == CMSSW_10_*_* ]]; then
     cd MelaAnalytics ; git checkout -b from-v22 v2.2 ; cd ..
     git clone https://github.com/JHUGen/JHUGenMela.git JHUGenMELA
     cd JHUGenMELA; git checkout -b from-v235 v2.3.5 ; source setup.sh -j 12 ; cd ..
-
-    echo " - Plots Configurations"
-
-    git clone https://github.com/scodella/PlotsConfigurations PlotsConfigurations
-    cd PlotsConfigurations
-    echo git checkout $analysis
-    cd -
 
     scram b -j 8
 
