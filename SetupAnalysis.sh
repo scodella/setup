@@ -1,0 +1,84 @@
+#!/bin/bash
+
+if [ -z $CMSSW_BASE ]; then
+    echo "========================================"
+    echo "No CMS environment detected; stopping..."
+    echo "========================================"
+    exit 1
+fi
+
+if [ $# == 0 ]; then
+    echo "========================================"
+    echo "No analysis choice provided; stopping..."
+    echo "========================================"
+    exit 1
+fi
+
+analysis=$1
+latinobranch=base
+onlyLatinoAnalysis=0
+
+if [ $analysis == 'master' ] || [ $analysis == 'base' ]; then
+    onlyLatinoAnalysis=1
+elif [[ $analysis == 'new'* ]]; then
+    analysis=base
+elif [ $# == 1 ]; then
+    latinobranch=$analysis
+fi
+
+source $CMSSW_BASE/src/LatinosSetup/Functions.sh
+
+if [[ "$CMSSW_VERSION" == CMSSW_10_*_* ]]; then
+    echo "======================================="
+    echo "running with $CMSSW_VERSION - this is a 13 TeV setup!"
+    echo "Current time:" $(date)
+    echo "checking out additional repositories; this could take a while ..."
+    echo "======================================="
+
+    echo " - Basic Code"
+
+    git clone git@github.com:scodella/LatinoAnalysis.git LatinoAnalysis
+    cd LatinoAnalysis
+    if [ $analysis == 'master' ]; then
+        git remote add upstream https://github.com/latinos/LatinoAnalysis
+        sed "s|https://github.com/latinos/setup|https://github.com/latinos/LatinoAnalysis|g" ../LatinosSetup/sync2upstream.sh > sync2upstream.sh    
+    else
+        echo git checkout $latinobranch
+    fi     
+    echo cd -
+
+    if [ $onlyLatinoAnalysis == 1 ]; then
+        exit 1
+    fi
+
+    echo " - Nano Tools"
+
+    git clone https://github.com/scodella/nanoAOD-tools PhysicsTools/NanoAODTools
+
+    echo " - Plotting Tools"
+
+    git clone git@github.com:yiiyama/multidraw.git LatinoAnalysis/MultiDraw
+    cd LatinoAnalysis/MultiDraw
+    #git checkout 2.0.12 2>/dev/null # This gives me an error
+    git checkout 2.0.12 >/dev/null
+    ./mkLinkDef.py --cmssw
+    cd ../..
+
+    echo " - MELA new version"
+
+    git clone git@github.com:MELALabs/MelaAnalytics.git MelaAnalytics
+    cd MelaAnalytics ; git checkout -b from-v22 v2.2 ; cd ..
+    git clone https://github.com/JHUGen/JHUGenMela.git JHUGenMELA
+    cd JHUGenMELA; git checkout -b from-v235 v2.3.5 ; source setup.sh -j 12 ; cd ..
+
+    echo " - Plots Configurations"
+
+    git clone https://github.com/scodella/PlotsConfigurations PlotsConfigurations
+    cd PlotsConfigurations
+    echo git checkout $analysis
+    cd -
+
+    scram b -j 8
+
+fi
+
