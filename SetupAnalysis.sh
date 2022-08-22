@@ -52,8 +52,8 @@ if [[ "$CMSSW_VERSION" == CMSSW_10_*_* ]]; then
     elif [ $isnew == 1 ]; then
         git checkout base
         git checkout -b $analysis base
-        sed "s|base|${analysis}|g;s|master|base|g" sync2master.sh > sync2base.sh
-        git rm sync2master.sh ; git add sync2base.sh ; git commit -m "sync2master to sync2base script"
+        sed -i "s|base|${analysis}|g;s|master|base|g" sync2master.sh 
+        git mv sync2master.sh sync2base.sh ; git commit -m "sync2master to sync2base script"
     else:
         echo git checkout $analysis
     fi     
@@ -70,6 +70,8 @@ if [[ "$CMSSW_VERSION" == CMSSW_10_*_* ]]; then
     if [ $isnew == 1 ]; then
         git checkout base
         git checkout -b $analysis base
+        sed -i "s|RPLME_ANALYSIS|${analysis}|g" sync2base.sh
+        git add sync2base.sh ; git commit -m "update to sync2base script"
     else:
         echo git checkout $analysis
     fi
