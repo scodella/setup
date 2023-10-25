@@ -17,11 +17,6 @@ fi
 isnew=0
 analysis=$1
 usebase=0
-onlyLatinoAnalysis=0
-
-if [ $analysis == 'master' ] || [ $analysis == 'base' ]; then
-    onlyLatinoAnalysis=1
-fi
 
 if [[ $analysis == 'new'* ]]; then
     analysis=${analysis#new}
@@ -57,7 +52,7 @@ if [[ "$CMSSW_VERSION" == CMSSW_10_*_* ]]; then
         git checkout -b $analysis base
         sed -i "s|base|${analysis}|g;s|master|base|g" sync2master.sh 
         git mv sync2master.sh sync2base.sh ; git commit -m "sync2master to sync2base script"
-    else:
+    else
         git checkout $analysis
     fi     
     cd -
@@ -75,7 +70,7 @@ if [[ "$CMSSW_VERSION" == CMSSW_10_*_* ]]; then
         git checkout -b $analysis base
         sed -i "s|RPLME_ANALYSIS|${analysis}|g" sync2base.sh
         git add sync2base.sh ; git commit -m "update to sync2base script"
-    else:
+    else
         git checkout $analysis
     fi
     cd -
