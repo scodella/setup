@@ -29,19 +29,9 @@ fi
 
 source $CMSSW_BASE/src/LatinosSetup/Functions.sh
 
-if [[ "$CMSSW_VERSION" == CMSSW_10_*_* ]]; then
-    runSetup='13'
-    multidrawrepo='yiiyama'
-elif [[ "$CMSSW_VERSION" == CMSSW_13_*_* ]]; then
-    runSetup='13.6'
-    multidrawrepo='scodella'
-else
-    echo "Uknown setup for " $CMSSW_VERSION
-    exit 1
-
-if [[ "$CMSSW_VERSION" == CMSSW_*_*_* ]]; then
+if [[ "$CMSSW_VERSION" == CMSSW_13_*_* ]]; then
     echo "======================================="
-    echo "running with $CMSSW_VERSION - this is a " $runSetup " TeV setup!"
+    echo "running with $CMSSW_VERSION - this is a 13.6 TeV setup!"
     echo "Current time:" $(date)
     echo "checking out additional repositories; this could take a while ..."
     echo "======================================="
@@ -88,7 +78,7 @@ if [[ "$CMSSW_VERSION" == CMSSW_*_*_* ]]; then
 
     echo " - Plotting Tools"
 
-    git clone git@github.com:$multidrawrepo/multidraw.git LatinoAnalysis/MultiDraw
+    git clone git@github.com:scodella/multidraw.git LatinoAnalysis/MultiDraw
     cd LatinoAnalysis/MultiDraw
     #git checkout 2.0.12 2>/dev/null # This gives me an error
     git checkout 2.0.12 >/dev/null
