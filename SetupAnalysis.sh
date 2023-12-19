@@ -93,6 +93,14 @@ if [[ "$CMSSW_VERSION" == CMSSW_13_*_* ]]; then
 
     fi
 
+    if [ $analysis == 'BTagPerf' ]; then
+
+	echo " - BTV scale factor repository"
+
+    	git clone https://gitlab.cern.ch/cms-btv/btv-scale-factors
+
+    fi
+
     if [ $analysis == 'XXX' ]; then
 
         echo " - MELA new version"
