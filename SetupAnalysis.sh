@@ -85,11 +85,15 @@ if [[ "$CMSSW_VERSION" == CMSSW_13_*_* ]]; then
     ./mkLinkDef.py --cmssw
     cd ../..
 
-    if [ $analysis == 'worker' ]; then
+    if [ $analysis == 'SUS23002' ]; then
       
 	echo " - Nano Tools"
 
         git clone git@github.com:scodella/nanoAOD-tools PhysicsTools/NanoAODTools
+
+        echo " - PlotsSMS"
+
+	git clone git@github.com:scodella/PlotsSMS PlotsSMS
 
     fi
 
