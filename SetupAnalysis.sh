@@ -44,12 +44,12 @@ if [[ "$CMSSW_VERSION" == CMSSW_13_*_* ]]; then
         git remote add upstream https://github.com/latinos/LatinoAnalysis
         sed "s|https://github.com/latinos/setup|https://github.com/latinos/LatinoAnalysis|g" ../LatinosSetup/sync2upstream.sh > sync2upstream.sh    
     elif [ $usebase == 1 ]; then
-        git checkout base
+        git checkout run3base
     elif [ $isnew == 1 ]; then
-        git checkout base
-        git checkout -b $analysis base
-        sed -i "s|base|${analysis}|g;s|master|base|g" sync2master.sh 
-        git mv sync2master.sh sync2base.sh ; git commit -m "sync2master to sync2base script"
+        git checkout run3base
+        git checkout -b $analysis run3base
+        sed -i "s|run3base|${analysis}|g;s|master|run3base|g" sync2master.sh 
+        git mv sync2master.sh sync2run3base.sh ; git commit -m "sync2master to sync2run3base script"
     else
         git checkout $analysis
     fi     
@@ -62,17 +62,17 @@ if [[ "$CMSSW_VERSION" == CMSSW_13_*_* ]]; then
     echo " - Plots Configurations"
 
     if [ $isnew == 1 ]; then
-        git clone -b base git@github.com:scodella/PlotsConfigurations PlotsConfigurations
+        git clone -b run3base git@github.com:scodella/PlotsConfigurations PlotsConfigurations
         cd PlotsConfigurations
-        git checkout -b $analysis base
-        sed -i "s|RPLME_ANALYSIS|${analysis}|g" sync2base.sh
-        git add sync2base.sh ; git commit -m "update to sync2base script"
+        git checkout -b $analysis run3base
+        sed -i "s|RPLME_ANALYSIS|${analysis}|g" sync2run3base.sh
+        git add sync2run3base.sh ; git commit -m "update sync2run3base script"
 	cd -
     else
         git clone -b $analysis git@github.com:scodella/PlotsConfigurations PlotsConfigurations
     fi
 
-    if [ $analysis == 'base' ]; then
+    if [ $analysis == 'run3base' ]; then
         exit 1
     fi
 
