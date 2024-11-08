@@ -16,7 +16,7 @@ fi
 
 isnew=0
 analysis=$1
-usebase=0
+latino=$1
 
 if [[ $analysis == 'new'* ]]; then
     analysis=${analysis#new}
@@ -24,44 +24,32 @@ if [[ $analysis == 'new'* ]]; then
 fi
 
 if [ $# == 2 ]; then
-    usebase=1
+    latino=run2base
 fi
 
 source $CMSSW_BASE/src/LatinosSetup/Functions.sh
 
 if [[ "$CMSSW_VERSION" == CMSSW_10_*_* ]]; then
-    runSetup='13'
-    multidrawrepo='yiiyama'
-elif [[ "$CMSSW_VERSION" == CMSSW_13_*_* ]]; then
-    runSetup='13.6'
-    multidrawrepo='scodella'
-else
-    echo "Uknown setup for " $CMSSW_VERSION
-    exit 1
-
-if [[ "$CMSSW_VERSION" == CMSSW_*_*_* ]]; then
-    echo "======================================="
-    echo "running with $CMSSW_VERSION - this is a " $runSetup " TeV setup!"
+    echo "================================================================="
+    echo "running with $CMSSW_VERSION - this is a 13 TeV setup!"
     echo "Current time:" $(date)
     echo "checking out additional repositories; this could take a while ..."
-    echo "======================================="
+    echo "================================================================="
 
-    echo " - Basic Code"
+    echo " - LatinoAnalysis"
 
     git clone git@github.com:scodella/LatinoAnalysis.git LatinoAnalysis
     cd LatinoAnalysis
     if [ $analysis == 'master' ]; then
         git remote add upstream https://github.com/latinos/LatinoAnalysis
         sed "s|https://github.com/latinos/setup|https://github.com/latinos/LatinoAnalysis|g" ../LatinosSetup/sync2upstream.sh > sync2upstream.sh    
-    elif [ $usebase == 1 ]; then
-        git checkout base
-    elif [ $isnew == 1 ]; then
-        git checkout base
-        git checkout -b $analysis base
-        sed -i "s|base|${analysis}|g;s|master|base|g" sync2master.sh 
-        git mv sync2master.sh sync2base.sh ; git commit -m "sync2master to sync2base script"
+    if [ $isnew == 1 ]; then
+        git checkout run2base
+        git checkout -b $analysis run2base
+        sed -i "s|run2base|${analysis}|g;s|master|run2base|g" sync2master.sh 
+        git mv sync2master.sh sync2run2base.sh ; git commit -m "sync2master to sync2run2base script"
     else
-        git checkout $analysis
+        git checkout $latino
     fi     
     cd -
 
@@ -69,43 +57,57 @@ if [[ "$CMSSW_VERSION" == CMSSW_*_*_* ]]; then
         exit 1
     fi
 
-    echo " - Plots Configurations"
+    echo " - PlotsConfigurations"
 
     if [ $isnew == 1 ]; then
-        git clone -b base git@github.com:scodella/PlotsConfigurations PlotsConfigurations
+        git clone -b run2base git@github.com:scodella/PlotsConfigurations PlotsConfigurations
         cd PlotsConfigurations
-        git checkout -b $analysis base
-        sed -i "s|RPLME_ANALYSIS|${analysis}|g" sync2base.sh
-        git add sync2base.sh ; git commit -m "update to sync2base script"
+        git checkout -b $analysis run2base
+        sed -i "s|RPLME_ANALYSIS|${analysis}|g" sync2run2base.sh
+        git add sync2run2base.sh ; git commit -m "update sync2run2base script"
 	cd -
     else
         git clone -b $analysis git@github.com:scodella/PlotsConfigurations PlotsConfigurations
     fi
 
-    if [ $analysis == 'base' ]; then
+    if [ $analysis == 'run2base' ]; then
         exit 1
     fi
 
-    echo " - Plotting Tools"
+    echo " - Plotting tools"
 
-    git clone git@github.com:$multidrawrepo/multidraw.git LatinoAnalysis/MultiDraw
+    git clone git@github.com:scodella/multidraw.git LatinoAnalysis/MultiDraw
     cd LatinoAnalysis/MultiDraw
     #git checkout 2.0.12 2>/dev/null # This gives me an error
     git checkout 2.0.12 >/dev/null
     ./mkLinkDef.py --cmssw
     cd ../..
 
-    if [ $analysis == 'worker' ]; then
+    echo " - Analysis specific repositories"
+
+    if [ $analysis == 'SUS23002' ]; then
       
-	echo " - Nano Tools"
+	echo "   - NanoTools"
 
         git clone git@github.com:scodella/nanoAOD-tools PhysicsTools/NanoAODTools
+
+        echo "   - PlotsSMS"
+
+	git clone git@github.com:scodella/PlotsSMS PlotsSMS
+
+    fi
+
+    if [ $analysis == 'BTagPerf' ]; then
+
+	echo "   - BTV scale factor repository"
+
+    	git clone https://gitlab.cern.ch/cms-btv/btv-scale-factors
 
     fi
 
     if [ $analysis == 'XXX' ]; then
 
-        echo " - MELA new version"
+        echo "   - MELA new version"
     
         git clone git@github.com:MELALabs/MelaAnalytics.git MelaAnalytics
         cd MelaAnalytics ; git checkout -b from-v22 v2.2 ; cd ..
