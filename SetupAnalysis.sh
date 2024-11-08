@@ -16,7 +16,7 @@ fi
 
 isnew=0
 analysis=$1
-usebase=0
+latino=$1
 
 if [[ $analysis == 'new'* ]]; then
     analysis=${analysis#new}
@@ -24,34 +24,32 @@ if [[ $analysis == 'new'* ]]; then
 fi
 
 if [ $# == 2 ]; then
-    usebase=1
+    latino=run2base
 fi
 
 source $CMSSW_BASE/src/LatinosSetup/Functions.sh
 
 if [[ "$CMSSW_VERSION" == CMSSW_13_*_* ]]; then
-    echo "======================================="
+    echo "================================================================="
     echo "running with $CMSSW_VERSION - this is a 13.6 TeV setup!"
     echo "Current time:" $(date)
     echo "checking out additional repositories; this could take a while ..."
-    echo "======================================="
+    echo "================================================================="
 
-    echo " - Basic Code"
+    echo " - LatinoAnalysis"
 
     git clone git@github.com:scodella/LatinoAnalysis.git LatinoAnalysis
     cd LatinoAnalysis
     if [ $analysis == 'master' ]; then
         git remote add upstream https://github.com/latinos/LatinoAnalysis
         sed "s|https://github.com/latinos/setup|https://github.com/latinos/LatinoAnalysis|g" ../LatinosSetup/sync2upstream.sh > sync2upstream.sh    
-    elif [ $usebase == 1 ]; then
-        git checkout run3base
-    elif [ $isnew == 1 ]; then
+    if [ $isnew == 1 ]; then
         git checkout run3base
         git checkout -b $analysis run3base
-        sed -i "s|run3base|${analysis}|g;s|master|run3base|g" sync2master.sh 
+        sed -i "s|run3base|${analysis}|g;s|master|run3base|g" sync2master.sh
         git mv sync2master.sh sync2run3base.sh ; git commit -m "sync2master to sync2run3base script"
     else
-        git checkout $analysis
+        git checkout $latino
     fi     
     cd -
 
@@ -59,7 +57,7 @@ if [[ "$CMSSW_VERSION" == CMSSW_13_*_* ]]; then
         exit 1
     fi
 
-    echo " - Plots Configurations"
+    echo " - PlotsConfigurations"
 
     if [ $isnew == 1 ]; then
         git clone -b run3base git@github.com:scodella/PlotsConfigurations PlotsConfigurations
@@ -76,7 +74,7 @@ if [[ "$CMSSW_VERSION" == CMSSW_13_*_* ]]; then
         exit 1
     fi
 
-    echo " - Plotting Tools"
+    echo " - Plotting tools"
 
     git clone git@github.com:scodella/multidraw.git LatinoAnalysis/MultiDraw
     cd LatinoAnalysis/MultiDraw
@@ -85,13 +83,15 @@ if [[ "$CMSSW_VERSION" == CMSSW_13_*_* ]]; then
     ./mkLinkDef.py --cmssw
     cd ../..
 
+    echo " - Analysis specific repositories"
+
     if [ $analysis == 'SUS23002' ]; then
       
-	echo " - Nano Tools"
+	echo "   - NanoTools"
 
         git clone git@github.com:scodella/nanoAOD-tools PhysicsTools/NanoAODTools
 
-        echo " - PlotsSMS"
+        echo "   - PlotsSMS"
 
 	git clone git@github.com:scodella/PlotsSMS PlotsSMS
 
@@ -99,7 +99,7 @@ if [[ "$CMSSW_VERSION" == CMSSW_13_*_* ]]; then
 
     if [ $analysis == 'BTagPerf' ]; then
 
-	echo " - BTV scale factor repository"
+	echo "   - BTV scale factor repository"
 
     	git clone https://gitlab.cern.ch/cms-btv/btv-scale-factors
 
@@ -107,7 +107,7 @@ if [[ "$CMSSW_VERSION" == CMSSW_13_*_* ]]; then
 
     if [ $analysis == 'XXX' ]; then
 
-        echo " - MELA new version"
+        echo "   - MELA new version"
     
         git clone git@github.com:MELALabs/MelaAnalytics.git MelaAnalytics
         cd MelaAnalytics ; git checkout -b from-v22 v2.2 ; cd ..
