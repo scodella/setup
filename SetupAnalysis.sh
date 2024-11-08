@@ -14,17 +14,25 @@ if [ $# == 0 ]; then
     exit 1
 fi
 
-isnew=0
+base=run3base
 analysis=$1
-latino=$1
+
+isnew=0
 
 if [[ $analysis == 'new'* ]]; then
     analysis=${analysis#new}
     isnew=1
 fi
 
+latino=$analysis
+
 if [ $# == 2 ]; then
-    latino=run2base
+    if [[ $2 != 'keep' ]]; then
+        base=${2#keep}
+    fi
+    if [[ $2 == 'keep'* ]]; then
+	latino=$base
+    fi
 fi
 
 source $CMSSW_BASE/src/LatinosSetup/Functions.sh
@@ -42,35 +50,35 @@ if [[ "$CMSSW_VERSION" == CMSSW_13_*_* ]]; then
     cd LatinoAnalysis
     if [ $analysis == 'master' ]; then
         git remote add upstream https://github.com/latinos/LatinoAnalysis
-        sed "s|https://github.com/latinos/setup|https://github.com/latinos/LatinoAnalysis|g" ../LatinosSetup/sync2upstream.sh > sync2upstream.sh    
-    if [ $isnew == 1 ]; then
-        git checkout run3base
-        git checkout -b $analysis run3base
-        sed -i "s|run3base|${analysis}|g;s|master|run3base|g" sync2master.sh
-        git mv sync2master.sh sync2run3base.sh ; git commit -m "sync2master to sync2run3base script"
-    else
-        git checkout $latino
+        sed "s|https://github.com/latinos/setup|https://github.com/latinos/LatinoAnalysis|g" ../LatinosSetup/sync2upstream.sh > sync2upstream.sh
+	git add sync2upstream.sh ; git commit -m "sync2upstream"
+	exit 1
+    elif [ $isnew == 0 ]; then
+	git checkout $latino
+    else 
+        git checkout $base
+        if [ $latino != $base ]; then
+            git checkout -b $analysis $base
+            sed -i "s|${base}|${analysis}|g;s|master|${base}|g" sync2master.sh 
+            git mv sync2master.sh sync2$base.sh ; git commit -m "sync2master to sync2$base script"
+	fi
     fi     
     cd -
-
-    if [ $analysis == 'master' ]; then
-        exit 1
-    fi
 
     echo " - PlotsConfigurations"
 
     if [ $isnew == 1 ]; then
-        git clone -b run3base git@github.com:scodella/PlotsConfigurations PlotsConfigurations
+        git clone -b $base git@github.com:scodella/PlotsConfigurations PlotsConfigurations
         cd PlotsConfigurations
-        git checkout -b $analysis run3base
-        sed -i "s|RPLME_ANALYSIS|${analysis}|g" sync2run3base.sh
-        git add sync2run3base.sh ; git commit -m "update sync2run3base script"
+        git checkout -b $analysis $base
+        sed -i "s|RPLME_ANALYSIS|${analysis}|g" sync2$base.sh
+        git add sync2$base.sh ; git commit -m "update sync2$base script"
 	cd -
     else
         git clone -b $analysis git@github.com:scodella/PlotsConfigurations PlotsConfigurations
     fi
 
-    if [ $analysis == 'run3base' ]; then
+    if [ $analysis == $base ]; then
         exit 1
     fi
 
@@ -85,7 +93,7 @@ if [[ "$CMSSW_VERSION" == CMSSW_13_*_* ]]; then
 
     echo " - Analysis specific repositories"
 
-    if [ $analysis == 'SUS23002' ]; then
+    if [ $analysis == 'SUSXXXXX' ]; then
       
 	echo "   - NanoTools"
 
