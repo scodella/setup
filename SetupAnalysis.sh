@@ -51,7 +51,6 @@ if [[ "$CMSSW_VERSION" == CMSSW_13_*_* ]]; then
     if [ $analysis == 'master' ]; then
         git remote add upstream https://github.com/latinos/LatinoAnalysis
         sed "s|https://github.com/latinos/setup|https://github.com/latinos/LatinoAnalysis|g" ../LatinosSetup/sync2upstream.sh > sync2upstream.sh
-	git add sync2upstream.sh ; git commit -m "sync2upstream"
 	exit 1
     elif [ $isnew == 0 ]; then
 	git checkout $latino
