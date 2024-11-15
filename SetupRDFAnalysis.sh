@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -n $CMSSW_BASE ]; then
+if [[ $CMSSW_BASE == 'CMSSW'* ]]; then
     echo "========================================"
     echo "CMS environment detected; stopping...   "
     echo "========================================"
